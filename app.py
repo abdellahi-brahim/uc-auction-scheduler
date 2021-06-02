@@ -25,7 +25,6 @@ def set_timer(time_str):
 
 #Sends request to end auction and gets next auction to end
 def end_auctions():
-    print("Ending Auctions...")
     #Send Request to end auctions
     requests.post(app.config.get('end'))
     r = requests.get(app.config.get('next'))
@@ -53,6 +52,7 @@ def homepage():
 @app.route('/update', methods=['POST'])
 def update():
     data = request.get_json()
+    print(data)
     date = date_parser.parse(data['time'])
     
     #No Scheduler set, set timer
