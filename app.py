@@ -3,6 +3,7 @@ from threading import Timer
 from datetime import datetime, timezone
 from dateutil import parser as date_parser
 import requests
+import pytz
 
 app = Flask(__name__)
 #Some global vars
@@ -18,7 +19,7 @@ def reset_timer(time_str):
 
 #Set timer to time_str datetime
 def set_timer(time_str):
-    app.config['next_date'] = date_parser.parse(time_str)
+    app.config['next_date'] = date_parser.parse(time_str).replace(tzinfo=pytz.UTC)
     diff = app.config['next_date'] - datetime.now(timezone.utc)
     app.config['timer'] = Timer(diff.total_seconds(), end_auctions)
     app.config['timer'].start()
@@ -53,14 +54,15 @@ def homepage():
 def update():
     data = request.get_json()
     print(data)
-    date = date_parser.parse(data['time'])
     
     #No Scheduler set, set timer
     if app.config['next_date'] is None:
         set_timer(data['time'])
 
+    date = date_parser.parse(data['time']).replace(tzinfo=pytz.UTC)
     #Scheduler set, reset timer
     if date < app.config['next_date'] and date > datetime.now(timezone.utc):
+        app.config['next_date'] = date
         reset_timer(data['time'])
     
     return jsonify({"message": f" Scheduled to {app.config.get('next_date')}"})
